@@ -24,17 +24,27 @@ class Rectangle : public Shap
     }
 };
 
-void HandFunctor(Box &b, Rectangle &r)
+void HandFunctor(Rectangle &b, Box &r)
 {
     std::cout << "hand box and rectangle" << std::endl;
 }
+
+struct Functor
+{
+    void operator()(Rectangle &b, Box &r)
+    {
+        std::cout << "hand Rectange and box in functor" << std::endl;
+    }
+};
+
 
 int main(int, char **)
 {
     try
     {
         FunctorDispather<Shap> dispather;
-        dispather.Add<Box, Rectangle>(HandFunctor);
+        dispather.Add<Rectangle, Box>(std::function<void(Rectangle&,Box&)>(Functor()));
+        // dispather.Add<Rectangle, Box>(HandFunctor);
         Box b;
         Rectangle r;
         dispather.Go(b, r);

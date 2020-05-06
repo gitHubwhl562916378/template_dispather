@@ -2,16 +2,12 @@
 #include <map>
 #include <typeinfo>
 #include <functional>
+#include <iostream>
 
 struct TypeInfoPair
 {
     TypeInfoPair(const std::type_info &l, const std::type_info &r) : first(l), second(r)
     {
-    }
-
-    bool operator<(const TypeInfoPair &other)
-    {
-        return first.before(other.first) && second.before(other.second);
     }
 
     const std::type_info &first;
@@ -20,12 +16,7 @@ struct TypeInfoPair
 
 inline bool operator<(const TypeInfoPair &l, const TypeInfoPair &r)
 {
-    return l.first.before(r.first) && l.second.before(r.second);
-}
-
-inline bool operator==(const TypeInfoPair &l, const TypeInfoPair &r)
-{
-    return (l.first == r.first) && (l.second == r.second);
+    return (std::string(l.first.name()) + l.second.name()) < (std::string(r.first.name()) + r.second.name());
 }
 
 template <
@@ -55,7 +46,7 @@ public:
 
     ResultType Go(BaseLhs &lhs, BaseRhs &rhs)
     {
-        const KeyType key(typeid(BaseLhs), typeid(BaseRhs));
+        const KeyType key(typeid(lhs), typeid(rhs));
         auto i = callbackMap_.find(key);
         if (i == callbackMap_.end())
         {
@@ -81,9 +72,9 @@ public:
             backEnd_.template Add<SomeLhs, SomeRhs>([=](BaseLhs &lhs, BaseRhs &rhs) {
                 fun(dynamic_cast<SomeLhs &>(lhs), dynamic_cast<SomeRhs &>(rhs));
             });
-            // backEnd_.template Add<SomeRhs, SomeLhs>([=](BaseRhs &rhs, BaseLhs &lhs) {
-                // fun(dynamic_cast<SomeLhs &>(lhs), dynamic_cast<SomeRhs &>(rhs));
-            // });
+            backEnd_.template Add<SomeRhs, SomeLhs>([=](BaseRhs &rhs, BaseLhs &lhs) {
+                fun(dynamic_cast<SomeLhs &>(lhs), dynamic_cast<SomeRhs &>(rhs));
+            });
         }
         else
         {
